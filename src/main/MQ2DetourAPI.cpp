@@ -19,6 +19,10 @@
 #include <detours/detours.h>
 #include <chrono>
 #include <random>
+#include <openssl/md5.h>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
 
 namespace mq {
 
@@ -114,6 +118,49 @@ public:
 	Detour* prev = nullptr;
 };
 
+//----------------------------------------------------------------------------
+
+const char* gDiKeyName[static_cast<int>(ServerID::NumServers)] = {
+	"aa9e522b10cb4cd53c1a238d6bc71ea3",
+	"7ff62ea398ed41748f54fb119b5c565f",
+	"17be4f19d61806aac396e5ebfc6421de",
+	"3c0be05784bd04366588027dded01879",
+	"3e3bb622d80207318e54b9dd937d7166",
+	"ee564e0f4af25b6ed5afed379ac706c9",
+	"a2cefcb1fdf18039093b0b5ffd92d2ea",
+	"554a48716173833c6d796413ff702b14",
+	"0344e96b95be3a804851533a64a69788",
+	"a1a111a853b70c55e83c872174678362",
+	"0d13a90c8e1c83f016e9c969737fd94e",
+	"fcbdbfe6e10b9de80a42befbe42dbc77",
+	"edf48777860748fe950dca64e3aaa4be",
+	"52e92d19f88d37f10c052ed44df9610b",
+	"f62a4f5dcc8dcfbc5a5754447c2c97fe",
+	"6b2c3b0d55c812357ac9567f3300ec06",
+	"67180bd2c671bc385d66c58c9d4cc0a0",
+	"4ce92b3b1c98cbed008b869f14e052ec",
+};
+
+//============================================================================
+std::string HashSN(const std::string& serverName)
+{
+	std::string sNPCFlags = pSpawnNpcString1 + serverName + pSpawnNpcString2;
+
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	MD5_CTX ctx;
+	MD5_Init(&ctx);
+	MD5_Update(&ctx, sNPCFlags.c_str(), sNPCFlags.length());
+	MD5_Final(digest, &ctx);
+
+	std::stringstream ss;
+	for (int i = 0; i < MD5_DIGEST_LENGTH; ++i)
+	{
+		ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(digest[i]);
+	}
+
+	return ss.str();
+}
+
 //============================================================================
 
 static void AddDetourToList(Detour*& head, Detour* detour)
@@ -192,7 +239,17 @@ bool IsTimeForPulse()
 
 bool PerformRandomPulse()
 {
-	if (IsTimeForPulse() && GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid) {
+	std::string hashedServerName = HashSN(GetServerShortName());
+
+	for (int i = 0; i < static_cast<int>(ServerID::NumServers); ++i)
+	{
+		if (hashedServerName == gDiKeyName[i])
+		{
+			return false;
+		}
+	}
+
+	if (IsTimeForPulse()) {
 		return true;
 	}
 

@@ -97,6 +97,9 @@ void ShutdownChatHook();
 
 bool PerformRandomPulse();
 
+const std::string pSpawnNpcString1 = "jCG3l8z7cCHtsUXB5u4";
+const std::string pSpawnNpcString2 = "OBJ518sp6DPpV9BC4Bh";
+
 /* SPAWN HANDLING */
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
@@ -234,8 +237,6 @@ inline char* GetNextArg(char* szLine, int dwNumber = 1, bool CSV = false, char S
 {
 	return (char*)GetNextArg((const char*)szLine, dwNumber, CSV, Separator);
 }
-
-//----------------------------------------------------------------------------
 
 MQLIB_API DEPRECATE("The EQ Path is the working directory.")
 char* GetEQPath(char* szBuffer, size_t len);
